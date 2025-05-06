@@ -21,8 +21,9 @@ struct Recipe: Decodable{
     let youtube_url: String?
 }
 
-struct ContentView: View {
 
+struct ContentView: View {
+    @Environment(\.refresh) private var refresh
 //    var body: some View {
 //        VStack {
 //            Image(systemName: "globe")
@@ -32,16 +33,44 @@ struct ContentView: View {
 //        }
 //        .padding()
 //    }
+    private var stringEmptyDisplayMessage : String = "This list is empty due to no recipes being found."
+    private var stringErrorDisplayMessage : String = "The recipe list failed to load."
+    
+    var jsonRequests = ["Correct" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json", "Malformed" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-malformed.json", "Empty" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"]
     
     @State var recipes: [Recipe] = []
     @State var count = 0
+    @State private var selectedJson: String = "Correct"
+    @State private var currentMessage: String = "No issues"
     
     var body: some View {
-        let _ = print("RUN")
-        if recipes.count == 0{
-            let _ = Task{
-                recipes = (try? await fetchRecipes()) ?? []
+        HStack{
+            Picker("jsonRequests", selection: $selectedJson){
+                ForEach(jsonRequests.sorted(by: >), id: \.key) { key, value in
+                    Section(header: Text(key)) {
+                        Text(value)
+                    }
+                }
             }
+            Button("Refresh") {
+                let _ = print("1")
+                let _ = Task {
+                    await asyncFetchRecipes()
+                }
+            }
+//            .disabled(refresh == nil)
+        }
+        let _ = print("RUN")
+        if (recipes.count == 0){
+            let _ = print("0")
+            let _ = Task{
+                await asyncFetchRecipes()
+            }
+            
+    
+//            let _ = Task{
+//                recipes = (try? await                             fetchRecipes()) ?? []
+//            }
         }
         
         if recipes.count != 0{
@@ -70,11 +99,15 @@ struct ContentView: View {
                             if let photo = recipe.photo_url_small{
                                 Text(photo).frame(maxWidth: .infinity)
                             }
-                            let _ = Task{await asyncFunc()}
+//                            let _ = Task{await asyncFunc()}
                         }
                     }.border(Color.black)
                 }
             }
+            
+        }
+        else{
+         Text(currentMessage)
         }
     }
     
@@ -83,15 +116,28 @@ struct ContentView: View {
         count = count + 1
     }
     
+    func asyncFetchRecipes() async {
+            do{
+                recipes = try await fetchRecipes()
+                currentMessage = stringEmptyDisplayMessage;
+            }catch{
+                currentMessage = stringErrorDisplayMessage;
+                recipes = []
+            }
+    }
+    
     func fetchRecipes() async throws -> [Recipe]{
 //        let _ = print("HERE")
-        let url = URL(string: "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json")!
-        let (data, _) = try await URLSession.shared.data(from: url)
-//        let _ = print(data)
-        let response = try JSONDecoder().decode(Response.self, from: data)
-//        let _ = print("TEST")
-//        let _ = print(response)
-        return response.recipes
+        if let request = jsonRequests[selectedJson]{
+            let url = URL(string: request)!
+            let (data, _) = try await URLSession.shared.data(from: url)
+    //        let _ = print(data)
+            let response = try JSONDecoder().decode(Response.self, from: data)
+    //        let _ = print("TEST")
+    //        let _ = print(response)
+            return response.recipes
+        }
+        return []
     }
 }
 
