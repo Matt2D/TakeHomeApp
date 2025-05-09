@@ -7,10 +7,12 @@
 
 import SwiftUI
 
+//Representation of a typical jsonRequest for recipe list
 struct Response: Decodable{
     let recipes: [Recipe]
 }
 
+//Representation of a typical recipe
 struct Recipe: Decodable{
     let cuisine: String
     let name: String
@@ -21,15 +23,28 @@ struct Recipe: Decodable{
     let youtube_url: String?
 }
 
+// A view around a image aquired via remote request
 struct RemoteImage: View {
     @State private var image: UIImage?
     private let source: URLRequest
     private let imageLoader: ImageLoader
     
+    /**
+     Initialzation of the image through URL
+     Args:
+        source : The requested URL
+        imageLoader: The actor responsible for managing images
+     **/
     init(source: URL, imageLoader: ImageLoader) {
             self.init(source: URLRequest(url: source), imageLoader: imageLoader)
         }
-
+    
+    /**
+     Initialzation of the image through URLRequest
+     Args:
+        source : The requested URL
+        imageLoader: The actor responsible for managing images
+     **/
     init(source: URLRequest, imageLoader: ImageLoader) {
         self.source = source
         self.imageLoader = imageLoader
@@ -48,7 +63,12 @@ struct RemoteImage: View {
             await loadImage(at: source)
         }
     }
-
+    
+    /**
+     Loads the images from the given URLRequest
+     Args:
+        source : The requested URL
+     **/
     func loadImage(at source: URLRequest) async {
         do {
             image = try await imageLoader.fetch(source)
@@ -61,15 +81,7 @@ struct RemoteImage: View {
 
 struct ContentView: View {
     @Environment(\.refresh) private var refresh
-//    var body: some View {
-//        VStack {
-//            Image(systemName: "globe")
-//                .imageScale(.large)
-//                .foregroundStyle(.tint)
-//            Text("Hello, world!")
-//        }
-//        .padding()
-//    }
+
     private var stringEmptyDisplayMessage : String = "This list is empty due to no recipes being found."
     private var stringErrorDisplayMessage : String = "The recipe list failed to load."
     
@@ -92,12 +104,10 @@ struct ContentView: View {
                 }
             }
             Button("Refresh") {
-                let _ = print("1")
                 let _ = Task {
                     await asyncFetchRecipes()
                 }
             }
-//            .disabled(refresh == nil)
         }
         let _ = print("RUN")
         if (recipes.count == 0){
@@ -105,11 +115,6 @@ struct ContentView: View {
             let _ = Task{
                 await asyncFetchRecipes()
             }
-            
-    
-//            let _ = Task{
-//                recipes = (try? await                             fetchRecipes()) ?? []
-//            }
         }
         
         if recipes.count != 0{
@@ -119,7 +124,7 @@ struct ContentView: View {
                         HStack(alignment: .center){
                             VStack(alignment: .center){
                                 Text(recipe.name)
-                                Text(recipe.cuisine)
+                                Text("Cuisine: " + recipe.cuisine)
                                 HStack(alignment: .top, spacing: 10){
                                     if let source = recipe.source_url{
                                         Link(destination: URL(string: source)!){
@@ -129,7 +134,7 @@ struct ContentView: View {
                                     
                                     if let youtube = recipe.youtube_url{
                                         Link(destination: URL(string: youtube)!){
-                                            Image(systemName: "globe").font(.largeTitle)
+                                            Image("YT_Logo").resizable().frame(width: 40, height: 40)
                                         }
                                     }
                                 }.frame(maxWidth: .infinity)
@@ -138,7 +143,6 @@ struct ContentView: View {
                                 if let photo = recipe.photo_url_small{
                                     let photo_url = URL(string: photo)!
                                     RemoteImage(source: photo_url, imageLoader: imageLoader)
-  
                                     }
                                     
                                 }
@@ -153,11 +157,11 @@ struct ContentView: View {
         }
     }
     
-    func asyncFunc() async {
-        let _ = print(count)
-        count = count + 1
-    }
-    
+    /**
+        Asyncronous call to find recipes
+     Results:
+            An updated recipe list, or error and correct message describing situation
+     **/
     func asyncFetchRecipes() async {
             do{
                 recipes = try await fetchRecipes()
@@ -168,12 +172,18 @@ struct ContentView: View {
             }
     }
     
+    /**
+     Attempts a jsonRequest to load recipes
+        Returns:
+                A list of decoded recipes
+     **/
     func fetchRecipes() async throws -> [Recipe]{
         if let request = jsonRequests[selectedJson]{
             let url = URL(string: request)!
             let (data, _) = try await URLSession.shared.data(from: url)
             let response = try JSONDecoder().decode(Response.self, from: data)
             return response.recipes
+            
         }
         return []
     }
