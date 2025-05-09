@@ -21,6 +21,43 @@ struct Recipe: Decodable{
     let youtube_url: String?
 }
 
+struct RemoteImage: View {
+    @State private var image: UIImage?
+    private let source: URLRequest
+    private let imageLoader: ImageLoader
+    
+    init(source: URL, imageLoader: ImageLoader) {
+            self.init(source: URLRequest(url: source), imageLoader: imageLoader)
+        }
+
+    init(source: URLRequest, imageLoader: ImageLoader) {
+        self.source = source
+        self.imageLoader = imageLoader
+    }
+
+    var body: some View {
+        Group {
+            if let image = image {
+                Image(uiImage: image)
+            } else {
+                Rectangle()
+                    .background(Color.red)
+            }
+        }
+        .task {
+            await loadImage(at: source)
+        }
+    }
+
+    func loadImage(at source: URLRequest) async {
+        do {
+            image = try await imageLoader.fetch(source)
+        } catch {
+            print(error)
+        }
+    }
+}
+
 
 struct ContentView: View {
     @Environment(\.refresh) private var refresh
@@ -35,6 +72,8 @@ struct ContentView: View {
 //    }
     private var stringEmptyDisplayMessage : String = "This list is empty due to no recipes being found."
     private var stringErrorDisplayMessage : String = "The recipe list failed to load."
+    
+    let imageLoader = ImageLoader()
     
     var jsonRequests = ["Correct" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json", "Malformed" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-malformed.json", "Empty" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"]
     
@@ -95,11 +134,14 @@ struct ContentView: View {
                                     }
                                 }.frame(maxWidth: .infinity)
                             }
-                            
-                            if let photo = recipe.photo_url_small{
-                                Text(photo).frame(maxWidth: .infinity)
-                            }
-//                            let _ = Task{await asyncFunc()}
+                            VStack{
+                                if let photo = recipe.photo_url_small{
+                                    let photo_url = URL(string: photo)!
+                                    RemoteImage(source: photo_url, imageLoader: imageLoader)
+  
+                                    }
+                                    
+                                }
                         }
                     }.border(Color.black)
                 }
@@ -127,18 +169,15 @@ struct ContentView: View {
     }
     
     func fetchRecipes() async throws -> [Recipe]{
-//        let _ = print("HERE")
         if let request = jsonRequests[selectedJson]{
             let url = URL(string: request)!
             let (data, _) = try await URLSession.shared.data(from: url)
-    //        let _ = print(data)
             let response = try JSONDecoder().decode(Response.self, from: data)
-    //        let _ = print("TEST")
-    //        let _ = print(response)
             return response.recipes
         }
         return []
     }
+    
 }
 
 #Preview {

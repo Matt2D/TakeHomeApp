@@ -26,8 +26,7 @@ actor ImageLoader {
                 return try await task.value
             }
         }
-
-        if let image = try self.imageFromFileSystem(for: urlRequest) {
+        if let image = try? self.imageFromFileSystem(for: urlRequest) {
             images[urlRequest] = .fetched(image)
             return image
         }
@@ -35,6 +34,8 @@ actor ImageLoader {
         let task: Task<UIImage, Error> = Task {
             let (imageData, _) = try await URLSession.shared.data(for: urlRequest)
             let image = UIImage(data: imageData)!
+            return image
+            //CHECK HERE
             try self.persistImage(image, for: urlRequest)
             return image
         }
@@ -58,8 +59,10 @@ actor ImageLoader {
             assertionFailure("Unable to generate a local path for \(urlRequest)")
             return nil
         }
-
-        let data = try Data(contentsOf: url)
+        guard let data = try? Data(contentsOf: url) else{
+            return nil
+        }
+            
         return UIImage(data: data)
     }
 
