@@ -53,7 +53,7 @@ struct RemoteImage: View {
     var body: some View {
         Group {
             if let image = image {
-                Image(uiImage: image)
+                Image(uiImage: image).resizable().scaledToFit()
             } else {
                 Rectangle()
                     .background(Color.red)
@@ -79,81 +79,27 @@ struct RemoteImage: View {
 }
 
 
-struct ContentView: View {
-    @Environment(\.refresh) private var refresh
-
-    private var stringEmptyDisplayMessage : String = "This list is empty due to no recipes being found."
-    private var stringErrorDisplayMessage : String = "The recipe list failed to load."
+class RecipeController: ObservableObject {
+    var stringEmptyDisplayMessage : String = "This list is empty due to no recipes being found."
+    var stringErrorDisplayMessage : String = "The recipe list failed to load."
+    var correctStringMessage : String = "Correct"
+    var emptyStringMessage : String = "Empty"
+    var malformedStringMessage : String = "Malformed"
     
-    let imageLoader = ImageLoader()
+    var jsonRequests: Dictionary<String, String>
     
-    var jsonRequests = ["Correct" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json", "Malformed" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-malformed.json", "Empty" : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"]
     
-    @State var recipes: [Recipe] = []
-    @State var count = 0
-    @State private var selectedJson: String = "Correct"
-    @State private var currentMessage: String = "No issues"
     
-    var body: some View {
-        HStack{
-            Picker("jsonRequests", selection: $selectedJson){
-                ForEach(jsonRequests.sorted(by: >), id: \.key) { key, value in
-                    Section(header: Text(key)) {
-                        Text(value)
-                    }
-                }
-            }
-            Button("Refresh") {
-                let _ = Task {
-                    await asyncFetchRecipes()
-                }
-            }
-        }
-        let _ = print("RUN")
-        if (recipes.count == 0){
-            let _ = print("0")
-            let _ = Task{
-                await asyncFetchRecipes()
-            }
-        }
+    @Published var recipes: [Recipe] = []
+    @Published var currentMessage: String = "No issues"
+    @Published var selectedJson: String
+    
+    init(){
+        self.selectedJson = correctStringMessage
+        self.jsonRequests = [correctStringMessage : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json", malformedStringMessage : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-malformed.json", emptyStringMessage : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"]
         
-        if recipes.count != 0{
-            ScrollView{
-                VStack(spacing:10){
-                    ForEach(recipes, id: \.name) { recipe in
-                        HStack(alignment: .center){
-                            VStack(alignment: .center){
-                                Text(recipe.name)
-                                Text("Cuisine: " + recipe.cuisine)
-                                HStack(alignment: .top, spacing: 10){
-                                    if let source = recipe.source_url{
-                                        Link(destination: URL(string: source)!){
-                                            Image(systemName: "globe").font(.largeTitle)
-                                        }
-                                    }
-                                    
-                                    if let youtube = recipe.youtube_url{
-                                        Link(destination: URL(string: youtube)!){
-                                            Image("YT_Logo").resizable().frame(width: 40, height: 40)
-                                        }
-                                    }
-                                }.frame(maxWidth: .infinity)
-                            }
-                            VStack{
-                                if let photo = recipe.photo_url_small{
-                                    let photo_url = URL(string: photo)!
-                                    RemoteImage(source: photo_url, imageLoader: imageLoader)
-                                    }
-                                    
-                                }
-                        }
-                    }.border(Color.black)
-                }
-            }
-            
-        }
-        else{
-         Text(currentMessage)
+        let _ = Task {
+            await asyncFetchRecipes()
         }
     }
     
@@ -186,6 +132,71 @@ struct ContentView: View {
             
         }
         return []
+    }
+    
+}
+
+
+struct ContentView: View {
+    @Environment(\.refresh) private var refresh
+
+    let imageLoader = ImageLoader()
+    @ObservedObject var recipeController = RecipeController()
+    
+    var body: some View {
+    
+        HStack{
+            Picker("Selected Data", selection: $recipeController.selectedJson){
+                ForEach(recipeController.jsonRequests.sorted(by: >), id: \.key) { key, value in
+                    Section(header: Text(key)) {
+                        Text(value)
+                    }
+                }
+            }
+            Button("Refresh") {
+                let _ = Task {
+                    await recipeController.asyncFetchRecipes()
+                }
+            }
+        }
+        if recipeController.recipes.count != 0{
+            ScrollView{
+                VStack(spacing:10){
+                    ForEach(recipeController.recipes, id: \.name) { recipe in
+                        HStack(alignment: .center){
+                            VStack(alignment: .center){
+                                Text(recipe.name)
+                                Text("Cuisine: " + recipe.cuisine)
+                                HStack(alignment: .top, spacing: 10){
+                                    if let source = recipe.source_url{
+                                        Link(destination: URL(string: source)!){
+                                            Image(systemName: "globe").font(.largeTitle)
+                                        }
+                                    }
+                                    
+                                    if let youtube = recipe.youtube_url{
+                                        Link(destination: URL(string: youtube)!){
+                                            Image("YT_Logo").resizable().frame(width: 40, height: 40)
+                                        }
+                                    }
+                                }.frame(maxWidth: .infinity)
+                            }
+                            VStack{
+                                if let photo = recipe.photo_url_small{
+                                    let photo_url = URL(string: photo)!
+                                    RemoteImage(source: photo_url, imageLoader: imageLoader)
+                                    }
+                                    
+                                }
+                        }
+                    }.border(Color.black)
+                }
+            }
+            
+        }
+        else{
+            Text(recipeController.currentMessage)
+        }
     }
     
 }
