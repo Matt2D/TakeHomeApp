@@ -6,14 +6,14 @@
 //
 
 ### Summary: Include screen shots or a video of your app highlighting its features
-Initial Load, the first round is done via network request, second load is done via caching.
+Initial Load, the first round is done via network request.
 
+https://github.com/user-attachments/assets/656975eb-1c2e-49f6-84db-0f5ea264188a
     
-Changing and Refreshing, the empty list and malform data are abled to be handled gracefully and the refresh button allows the user to update.
+Changing and Refreshing, the empty list and malform data are abled to be handled gracefully and the refresh button allows the user to update. Second load is done via caching.
 
-
-
-
+https://github.com/user-attachments/assets/54eca266-bdf9-45ea-a092-6308f596e3e2
+https://github.com/user-attachments/assets/2db4c079-ae35-403d-910b-303de561b90b
 
 
 ### Focus Areas: What specific areas of the project did you prioritize? Why did you choose to focus on these areas?
