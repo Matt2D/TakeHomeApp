@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		79000E6A2DD3E74D00413940 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 79000E692DD3E74600413940 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		7907CD6A2DC5370B001EF2E2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		79000E692DD3E74600413940 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7907CD5C2DC53709001EF2E2 /* TakeHomeTestResturantApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TakeHomeTestResturantApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7907CD692DC5370B001EF2E2 /* TakeHomeTestResturantAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TakeHomeTestResturantAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7907CD732DC5370B001EF2E2 /* TakeHomeTestResturantAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TakeHomeTestResturantAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +80,7 @@
 		7907CD532DC53709001EF2E2 = {
 			isa = PBXGroup;
 			children = (
+				79000E692DD3E74600413940 /* README.md */,
 				7907CD5E2DC53709001EF2E2 /* TakeHomeTestResturantApp */,
 				7907CD6C2DC5370B001EF2E2 /* TakeHomeTestResturantAppTests */,
 				7907CD762DC5370B001EF2E2 /* TakeHomeTestResturantAppUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79000E6A2DD3E74D00413940 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

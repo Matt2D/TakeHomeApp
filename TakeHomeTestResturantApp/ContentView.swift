@@ -82,21 +82,25 @@ struct RemoteImage: View {
 class RecipeController: ObservableObject {
     var stringEmptyDisplayMessage : String = "This list is empty due to no recipes being found."
     var stringErrorDisplayMessage : String = "The recipe list failed to load."
-    var correctStringMessage : String = "Correct"
-    var emptyStringMessage : String = "Empty"
-    var malformedStringMessage : String = "Malformed"
+    var initilizedStringDisplayMessage : String = "No issues"
+    
+    var correctStringJson : String = "Correct"
+    var emptyStringJson : String = "Empty"
+    var malformedStringJson : String = "Malformed"
+    
     
     var jsonRequests: Dictionary<String, String>
     
     
     
     @Published var recipes: [Recipe] = []
-    @Published var currentMessage: String = "No issues"
+    @Published var currentMessage: String
     @Published var selectedJson: String
     
     init(){
-        self.selectedJson = correctStringMessage
-        self.jsonRequests = [correctStringMessage : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json", malformedStringMessage : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-malformed.json", emptyStringMessage : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"]
+        self.currentMessage = initilizedStringDisplayMessage
+        self.selectedJson = correctStringJson
+        self.jsonRequests = [correctStringJson : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json", malformedStringJson : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-malformed.json", emptyStringJson : "https://d3jbb8n5wk0qxi.cloudfront.net/recipes-empty.json"]
         
         let _ = Task {
             await asyncFetchRecipes()
@@ -108,10 +112,14 @@ class RecipeController: ObservableObject {
      Results:
             An updated recipe list, or error and correct message describing situation
      **/
-    func asyncFetchRecipes() async {
+    @MainActor func asyncFetchRecipes() async {
             do{
                 recipes = try await fetchRecipes()
-                currentMessage = stringEmptyDisplayMessage;
+                if(recipes.count > 0) {
+                    currentMessage = initilizedStringDisplayMessage;
+                }else{
+                    currentMessage = stringEmptyDisplayMessage;
+                }
             }catch{
                 currentMessage = stringErrorDisplayMessage;
                 recipes = []

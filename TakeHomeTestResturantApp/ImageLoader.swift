@@ -74,7 +74,7 @@ actor ImageLoader {
      Returns:
             The fetched UI image
      **/
-    private func imageFromFileSystem(for urlRequest: URLRequest) throws -> UIImage? {
+    public func imageFromFileSystem(for urlRequest: URLRequest) throws -> UIImage? {
         guard let url = fileName(for: urlRequest) else {
             assertionFailure("Unable to generate a local path for \(urlRequest)")
             return nil
@@ -121,7 +121,7 @@ actor ImageLoader {
      **/
     private func persistImage(_ image: UIImage, for urlRequest: URLRequest) throws {
         guard let url = fileName(for: urlRequest),
-              let data = image.jpegData(compressionQuality: 0.8) else {
+              let data = image.jpegData(compressionQuality: 1) else {
             assertionFailure("Unable to generate a local path for \(urlRequest)")
             return
         }
